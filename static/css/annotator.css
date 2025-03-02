@@ -1,0 +1,250 @@
+/* 基本スタイル */
+body {
+    font-family: "Meiryo", "Hiragino Sans", "Yu Gothic", sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+}
+
+/* PDFコンテナ */
+.pdf-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: #e0e0e0;
+    overflow: hidden;
+}
+
+.pdf-viewer {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: #ddd;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+/* キャンバスと注釈レイヤー */
+.pdf-canvas {
+    display: block;
+    margin: 0 auto;
+    background-color: white;
+}
+
+.annotation-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: auto;
+    z-index: 2;
+}
+
+/* 注釈スタイル */
+.annotation {
+    position: absolute;
+    border-radius: 2px;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+
+.annotation:hover {
+    opacity: 0.8;
+}
+
+.annotation.highlight {
+    background-color: rgba(255, 255, 0, 0.3);
+}
+
+.annotation.rect {
+    background-color: rgba(0, 162, 255, 0.3);
+    border: 1px dashed rgba(0, 132, 255, 0.8);
+}
+
+.annotation.text {
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid #ccc;
+    padding: 5px;
+    min-width: 100px;
+    min-height: 40px;
+    cursor: text;
+    overflow: auto;
+    font-size: 14px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* 注釈ツールバー */
+.annotation-toolbar {
+    display: flex;
+    align-items: center;
+    background-color: #333;
+    color: white;
+    padding: 8px;
+    border-bottom: 1px solid #555;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.tool-btn {
+    padding: 8px 15px;
+    margin-right: 5px;
+    background-color: #444;
+    border: none;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.tool-btn:hover {
+    background-color: #555;
+}
+
+.tool-btn.active {
+    background-color: #007bff;
+}
+
+.color-picker {
+    margin: 0 10px;
+    padding: 2px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.save-btn {
+    margin-left: auto;
+    background-color: #28a745;
+}
+
+.save-btn:hover {
+    background-color: #218838;
+}
+
+/* ページコントロール */
+.page-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 8px;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 20px;
+    color: white;
+    z-index: 10;
+}
+
+.page-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    margin: 0 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.page-btn:hover {
+    background-color: #0069d9;
+}
+
+.page-info {
+    margin: 0 10px;
+    font-size: 14px;
+}
+
+/* エラーメッセージ */
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 15px;
+    margin: 20px;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    font-size: 14px;
+    max-width: 80%;
+    margin: 20px auto;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* ローディング表示 */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 1000;
+}
+
+.loading-spinner {
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* レスポンシブ対応 */
+@media screen and (max-width: 768px) {
+    .annotation-toolbar {
+        overflow-x: auto;
+        justify-content: flex-start;
+        padding: 5px;
+    }
+    
+    .tool-btn {
+        padding: 5px 10px;
+        font-size: 13px;
+    }
+    
+    .page-controls {
+        bottom: 10px;
+        padding: 5px 10px;
+    }
+    
+    .page-btn {
+        padding: 4px 8px;
+        font-size: 13px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .annotation-toolbar {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .tool-btn {
+        margin-bottom: 5px;
+        flex: 1 0 auto;
+    }
+    
+    .page-controls {
+        width: 90%;
+    }
+    
+    .error-message {
+        max-width: 95%;
+    }
+} 

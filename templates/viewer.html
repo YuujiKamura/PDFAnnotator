@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDFビューアー</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'">
+    <link rel="stylesheet" href="/static/css/annotator.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background-color: #f0f0f0;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            height: calc(100vh - 60px);
+            overflow: hidden;
+        }
+        
+        .pdf-container {
+            flex: 1;
+            position: relative;
+        }
+        
+        .back-link {
+            margin-right: 20px;
+        }
+        
+        .filename {
+            font-weight: bold;
+        }
+        
+        #pdf-display {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* PDF.js用スタイル */
+        #pdf-viewer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        
+        /* エラーメッセージ用スタイル */
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            margin: 20px;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+        }
+        
+        /* ローディング表示 */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: 1000;
+        }
+        
+        .loading-spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+    <script src="/static/js/annotator.js"></script>
+</head>
+<body>
+    <div class="header">
+        <div class="back-link">
+            <a href="/">← ホームに戻る</a>
+        </div>
+        <div class="filename">
+            {{ filename }}
+        </div>
+        <div></div>
+    </div>
+    
+    <div class="main-content">
+        <div id="pdf-display">
+            <div id="loading-indicator" class="loading">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const pdfDisplay = document.getElementById('pdf-display');
+            const pdfUrl = '/temp/{{ filename }}';
+            const loadingIndicator = document.getElementById('loading-indicator');
+            
+            // ローディング表示
+            showLoading(true);
+            
+            try {
+                // PDF.jsの初期化
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+                
+                // PDF注釈ツールの初期化
+                const annotator = new PDFAnnotator(pdfDisplay, pdfUrl);
+                
+                console.log('PDF読み込み開始:', pdfUrl);
+            } catch (error) {
+                console.error('初期化エラー:', error);
+                showError('PDFビューアーの初期化に失敗しました: ' + error.message);
+            }
+            
+            function showLoading(show) {
+                loadingIndicator.style.display = show ? 'flex' : 'none';
+            }
+            
+            function showError(message) {
+                showLoading(false);
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.textContent = message;
+                pdfDisplay.appendChild(errorDiv);
+            }
+        });
+    </script>
+</body>
+</html> 

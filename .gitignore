@@ -1,0 +1,38 @@
+# Python関連
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.pytest_cache/
+
+# ログファイル
+logs/
+*.log
+
+# 一時ファイル
+temp/
+tmp/
+
+# アップロードされたPDF
+uploads/
+
+# 生成された注釈
+annotations/
+
+# IDEの設定
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS生成ファイル
+.DS_Store
+Thumbs.db 

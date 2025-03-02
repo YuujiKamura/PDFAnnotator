@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF注釈ツール</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+    <style>
+        body {
+            font-family: "Meiryo", "Hiragino Sans", "Yu Gothic", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background-color: #333;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 2rem;
+        }
+        
+        .upload-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .upload-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
+        
+        .upload-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .file-input-container {
+            width: 100%;
+            margin-bottom: 1.5rem;
+        }
+        
+        .file-input-label {
+            display: block;
+            width: 100%;
+            padding: 0.8rem;
+            background-color: #f8f9fa;
+            border: 2px dashed #ccc;
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .file-input-label:hover {
+            background-color: #e9ecef;
+            border-color: #adb5bd;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .upload-btn {
+            padding: 0.8rem 1.5rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .upload-btn:hover {
+            background-color: #0069d9;
+        }
+        
+        .upload-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .file-info {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 0.75rem;
+            margin-top: 1rem;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            width: 100%;
+            display: none;
+        }
+        
+        .footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .upload-container {
+                padding: 1.5rem;
+            }
+            
+            .upload-title {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>PDF注釈ツール</h1>
+    </div>
+    
+    <div class="main-content">
+        <div class="upload-container">
+            <h2 class="upload-title">PDFファイルをアップロード</h2>
+            <form id="upload-form" action="/upload" method="post" enctype="multipart/form-data" class="upload-form">
+                <div class="file-input-container">
+                    <label for="pdf-file" class="file-input-label">
+                        ファイルを選択またはドラッグ&ドロップ
+                    </label>
+                    <input type="file" name="file" id="pdf-file" class="file-input" accept=".pdf">
+                </div>
+                
+                <div class="file-info" id="file-info">選択されたファイル: なし</div>
+                
+                <button type="submit" id="upload-button" class="upload-btn" disabled>アップロード</button>
+                
+                <div class="error-message" id="error-message"></div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>&copy; 2023 PDF注釈ツール</p>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('pdf-file');
+            const fileInfo = document.getElementById('file-info');
+            const uploadButton = document.getElementById('upload-button');
+            const errorMessage = document.getElementById('error-message');
+            const uploadForm = document.getElementById('upload-form');
+            
+            // ファイル選択時の処理
+            fileInput.addEventListener('change', function() {
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    
+                    // PDFファイルの形式チェック
+                    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                        showError('PDFファイルのみアップロード可能です。');
+                        fileInput.value = '';
+                        fileInfo.textContent = '選択されたファイル: なし';
+                        uploadButton.disabled = true;
+                        return;
+                    }
+                    
+                    // ファイルサイズチェック（16MB制限）
+                    if (file.size > 16 * 1024 * 1024) {
+                        showError('ファイルサイズは16MB以下である必要があります。');
+                        fileInput.value = '';
+                        fileInfo.textContent = '選択されたファイル: なし';
+                        uploadButton.disabled = true;
+                        return;
+                    }
+                    
+                    // ファイル情報を表示
+                    fileInfo.textContent = '選択されたファイル: ' + file.name;
+                    uploadButton.disabled = false;
+                    errorMessage.style.display = 'none';
+                } else {
+                    fileInfo.textContent = '選択されたファイル: なし';
+                    uploadButton.disabled = true;
+                }
+            });
+            
+            // ドラッグ&ドロップ対応
+            const dropZone = document.querySelector('.file-input-label');
+            
+            ['dragover', 'dragenter'].forEach(eventName => {
+                dropZone.addEventListener(eventName, function(e) {
+                    e.preventDefault();
+                    dropZone.classList.add('highlight');
+                }, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, function(e) {
+                    e.preventDefault();
+                    dropZone.classList.remove('highlight');
+                }, false);
+            });
+            
+            dropZone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    const event = new Event('change');
+                    fileInput.dispatchEvent(event);
+                }
+            }, false);
+            
+            // エラーメッセージの表示
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+            }
+            
+            // フォーム送信前の処理
+            uploadForm.addEventListener('submit', function(e) {
+                if (fileInput.files.length === 0) {
+                    e.preventDefault();
+                    showError('ファイルを選択してください。');
+                    return;
+                }
+                
+                // アップロードボタンを無効化
+                uploadButton.disabled = true;
+                uploadButton.textContent = 'アップロード中...';
+            });
+        });
+    </script>
+</body>
+</html> 

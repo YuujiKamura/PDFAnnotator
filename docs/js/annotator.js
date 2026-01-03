@@ -19,7 +19,7 @@ class PDFAnnotatorApp {
         // ツール別のデフォルト色
         this.toolColors = {
             highlight: '#ff0000',  // 赤
-            rect: '#808080',       // グレー
+            rect: '#ff0000',       // 赤
             text: '#000000'        // 黒
         };
         this.selectedAnnotation = null;

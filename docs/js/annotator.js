@@ -20,6 +20,7 @@ class PDFAnnotatorApp {
         this.mouseDownPos = null;
         this.pdfBytes = null;  // 元のPDFデータを保持
         this.currentFilename = 'document.pdf';
+        this.japaneseFont = null;  // 日本語フォントキャッシュ
 
         this.init();
     }
@@ -636,6 +637,25 @@ class PDFAnnotatorApp {
         return { r, g, b };
     }
 
+    async loadJapaneseFont() {
+        if (this.japaneseFont) {
+            return this.japaneseFont;
+        }
+
+        try {
+            const response = await fetch('./fonts/NotoSansJP-Subset.otf');
+            if (!response.ok) {
+                throw new Error(`Font fetch failed: ${response.status}`);
+            }
+            const fontBytes = await response.arrayBuffer();
+            this.japaneseFont = new Uint8Array(fontBytes);
+            return this.japaneseFont;
+        } catch (e) {
+            console.error('Failed to load Japanese font:', e);
+            throw new Error('日本語フォントの読み込みに失敗しました');
+        }
+    }
+
     async saveAnnotatedPDF() {
         if (!this.pdfBytes || this.annotations.length === 0) {
             alert('注釈がありません。注釈を追加してから保存してください。');
@@ -647,6 +667,20 @@ class PDFAnnotatorApp {
         try {
             // pdf-libでPDFを読み込む
             const pdfDoc = await PDFLib.PDFDocument.load(this.pdfBytes);
+
+            // fontkitを登録（カスタムフォント埋め込みに必要）
+            if (typeof fontkit !== 'undefined') {
+                pdfDoc.registerFontkit(fontkit);
+            }
+
+            // テキスト注釈があるか確認し、あれば日本語フォントを読み込む
+            const hasTextAnnotation = this.annotations.some(a => a.type === 'text');
+            let embeddedFont = null;
+            if (hasTextAnnotation) {
+                const fontBytes = await this.loadJapaneseFont();
+                embeddedFont = await pdfDoc.embedFont(fontBytes);
+            }
+
             const pages = pdfDoc.getPages();
 
             // 各注釈を描画
@@ -714,6 +748,7 @@ class PDFAnnotatorApp {
                         x: x,
                         y: y - fontSize,
                         size: fontSize,
+                        font: embeddedFont,
                         color: PDFLib.rgb(textColor.r, textColor.g, textColor.b),
                     });
                 }

@@ -19,7 +19,7 @@ class PDFAnnotatorApp {
         // ツール別のデフォルト色
         this.toolColors = {
             highlight: '#ff0000',  // 赤
-            rect: '#808080',       // グレー
+            rect: '#ff0000',       // 赤
             text: '#000000'        // 黒
         };
         this.selectedAnnotation = null;
@@ -528,22 +528,21 @@ class PDFAnnotatorApp {
         const textColor = document.getElementById('text-color');
         const textBgColor = document.getElementById('text-bg-color');
         const textBgTransparent = document.getElementById('text-bg-transparent');
-        const fontSizeToolbar = document.getElementById('font-size-toolbar');
-        const fontFamilyToolbar = document.getElementById('font-family-toolbar');
+        const fontSizeDialog = document.getElementById('font-size-dialog');
+        const fontFamilyDialog = document.getElementById('font-family-dialog');
 
         if (existingAnnotation) {
             textInput.value = existingAnnotation.text || '';
-            // ツールバーの値を既存の注釈に合わせる
-            this.activeFontSize = existingAnnotation.fontSize || 16;
-            this.activeFontFamily = existingAnnotation.fontFamily || 'mincho';
-            fontSizeToolbar.value = this.activeFontSize;
-            fontFamilyToolbar.value = this.activeFontFamily;
+            fontSizeDialog.value = existingAnnotation.fontSize || 16;
+            fontFamilyDialog.value = existingAnnotation.fontFamily || 'mincho';
             textColor.value = existingAnnotation.color || '#000000';
             textBgColor.value = existingAnnotation.backgroundColor || '#ffffff';
             textBgTransparent.checked = existingAnnotation.backgroundColor === 'transparent';
             this.editingAnnotationId = existingAnnotation.id;
         } else {
             textInput.value = '';
+            fontSizeDialog.value = this.activeFontSize;
+            fontFamilyDialog.value = this.activeFontFamily;
             textColor.value = '#000000';
             textBgColor.value = '#ffffff';
             textBgTransparent.checked = false;
@@ -560,6 +559,8 @@ class PDFAnnotatorApp {
         const textColor = document.getElementById('text-color');
         const textBgColor = document.getElementById('text-bg-color');
         const textBgTransparent = document.getElementById('text-bg-transparent');
+        const fontSizeDialog = document.getElementById('font-size-dialog');
+        const fontFamilyDialog = document.getElementById('font-family-dialog');
 
         const text = textInput.value.trim();
         if (!text) {
@@ -570,8 +571,8 @@ class PDFAnnotatorApp {
         const annotationData = {
             type: 'text',
             text: text,
-            fontSize: this.activeFontSize,
-            fontFamily: this.activeFontFamily,
+            fontSize: parseInt(fontSizeDialog.value),
+            fontFamily: fontFamilyDialog.value,
             color: textColor.value,
             backgroundColor: textBgTransparent.checked ? 'transparent' : textBgColor.value
         };

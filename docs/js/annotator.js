@@ -95,15 +95,34 @@ class PDFAnnotatorApp {
             }
         });
 
-        // ツールバーボタン
+        // ツールバーボタン（もう一度クリックで選択モードに戻る）
         document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
             btn.addEventListener('click', () => {
-                this.selectTool(btn.dataset.tool);
+                const tool = btn.dataset.tool;
+                if (tool !== 'select' && this.currentTool === tool) {
+                    // 同じツールをクリックしたら選択モードに戻る
+                    this.selectTool('select');
+                } else {
+                    this.selectTool(tool);
+                }
             });
         });
 
-        // カラーピッカー
+        // カラーピッカー（ハイライト・矩形用）
         document.getElementById('color-picker').addEventListener('input', (e) => {
+            this.activeColor = e.target.value;
+        });
+
+        // 不透明度スライダー
+        const opacitySlider = document.getElementById('opacity-slider');
+        const opacityValue = document.getElementById('opacity-value');
+        opacitySlider.addEventListener('input', (e) => {
+            this.activeOpacity = parseInt(e.target.value) / 100;
+            opacityValue.textContent = e.target.value + '%';
+        });
+
+        // テキストカラーピッカー
+        document.getElementById('text-color-picker').addEventListener('input', (e) => {
             this.activeColor = e.target.value;
         });
 
@@ -313,6 +332,21 @@ class PDFAnnotatorApp {
             document.getElementById('color-picker').value = this.activeColor;
         }
 
+        // オプション表示を更新
+        const shapeOptions = document.getElementById('shape-options');
+        const textOptions = document.getElementById('text-options');
+
+        if (toolName === 'highlight' || toolName === 'rect') {
+            shapeOptions.style.display = 'flex';
+            textOptions.style.display = 'none';
+        } else if (toolName === 'text') {
+            shapeOptions.style.display = 'none';
+            textOptions.style.display = 'flex';
+        } else {
+            shapeOptions.style.display = 'none';
+            textOptions.style.display = 'none';
+        }
+
         // カーソルを更新
         if (toolName === 'select') {
             this.annotationLayer.style.cursor = 'default';
@@ -340,7 +374,13 @@ class PDFAnnotatorApp {
         }
 
         if (this.currentTool === 'text') {
-            // テキストダイアログを表示
+            // 既存のテキスト注釈をクリックした場合は編集
+            const clickedAnnotation = this.getAnnotationAt(pos.x, pos.y);
+            if (clickedAnnotation && clickedAnnotation.type === 'text') {
+                this.editTextAnnotation(clickedAnnotation);
+                return;
+            }
+            // 新規テキスト注釈
             this.pendingTextPosition = pos;
             this.showTextDialog();
             return;
@@ -372,9 +412,19 @@ class PDFAnnotatorApp {
     }
 
     onMouseMove(e) {
-        if (!this.isDrawing || !this.currentAnnotationElement) return;
-
         const pos = this.getMousePosition(e);
+
+        // テキストモードで既存テキスト上ではポインターカーソル
+        if (this.currentTool === 'text') {
+            const hovered = this.getAnnotationAt(pos.x, pos.y);
+            if (hovered && hovered.type === 'text') {
+                this.annotationLayer.style.cursor = 'pointer';
+            } else {
+                this.annotationLayer.style.cursor = 'text';
+            }
+        }
+
+        if (!this.isDrawing || !this.currentAnnotationElement) return;
 
         // サイズを計算
         const width = pos.x - this.mouseDownPos.x;
@@ -440,6 +490,36 @@ class PDFAnnotatorApp {
             x: e.clientX - rect.left,
             y: e.clientY - rect.top
         };
+    }
+
+    getAnnotationAt(x, y) {
+        // 現在のページの注釈のみを対象
+        const pageAnnotations = this.annotations.filter(a => a.page === this.currentPage);
+
+        // 後から追加されたものが上に表示されるので、逆順でチェック
+        for (let i = pageAnnotations.length - 1; i >= 0; i--) {
+            const ann = pageAnnotations[i];
+
+            if (ann.type === 'text') {
+                // テキスト注釈のヒット判定
+                const element = this.annotationLayer.querySelector(`[data-id="${ann.id}"]`);
+                if (element) {
+                    const width = element.offsetWidth;
+                    const height = element.offsetHeight;
+                    if (x >= ann.x && x <= ann.x + width &&
+                        y >= ann.y && y <= ann.y + height) {
+                        return ann;
+                    }
+                }
+            } else {
+                // ハイライト・矩形のヒット判定
+                if (x >= ann.x && x <= ann.x + ann.width &&
+                    y >= ann.y && y <= ann.y + ann.height) {
+                    return ann;
+                }
+            }
+        }
+        return null;
     }
 
     showTextDialog(existingAnnotation = null) {

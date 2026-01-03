@@ -62,10 +62,22 @@
                         </button>
                     </div>
 
-                    <div class="tool-group">
+                    <div class="tool-group" id="shape-options" style="display: none;">
                         <label class="tool-option">
                             <span>色:</span>
                             <input type="color" id="color-picker" value="#ff0000">
+                        </label>
+                        <label class="tool-option">
+                            <span>不透明度:</span>
+                            <input type="range" id="opacity-slider" min="10" max="100" value="30">
+                            <span id="opacity-value">30%</span>
+                        </label>
+                    </div>
+
+                    <div class="tool-group" id="text-options" style="display: none;">
+                        <label class="tool-option">
+                            <span>色:</span>
+                            <input type="color" id="text-color-picker" value="#000000">
                         </label>
                         <label class="tool-option">
                             <span>サイズ:</span>

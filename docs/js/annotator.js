@@ -340,7 +340,13 @@ class PDFAnnotatorApp {
         }
 
         if (this.currentTool === 'text') {
-            // テキストダイアログを表示
+            // 既存のテキスト注釈をクリックした場合は編集
+            const clickedAnnotation = this.getAnnotationAt(pos.x, pos.y);
+            if (clickedAnnotation && clickedAnnotation.type === 'text') {
+                this.editTextAnnotation(clickedAnnotation);
+                return;
+            }
+            // 新規テキスト注釈
             this.pendingTextPosition = pos;
             this.showTextDialog();
             return;
@@ -372,9 +378,19 @@ class PDFAnnotatorApp {
     }
 
     onMouseMove(e) {
-        if (!this.isDrawing || !this.currentAnnotationElement) return;
-
         const pos = this.getMousePosition(e);
+
+        // テキストモードで既存テキスト上ではポインターカーソル
+        if (this.currentTool === 'text') {
+            const hovered = this.getAnnotationAt(pos.x, pos.y);
+            if (hovered && hovered.type === 'text') {
+                this.annotationLayer.style.cursor = 'pointer';
+            } else {
+                this.annotationLayer.style.cursor = 'text';
+            }
+        }
+
+        if (!this.isDrawing || !this.currentAnnotationElement) return;
 
         // サイズを計算
         const width = pos.x - this.mouseDownPos.x;
@@ -440,6 +456,36 @@ class PDFAnnotatorApp {
             x: e.clientX - rect.left,
             y: e.clientY - rect.top
         };
+    }
+
+    getAnnotationAt(x, y) {
+        // 現在のページの注釈のみを対象
+        const pageAnnotations = this.annotations.filter(a => a.page === this.currentPage);
+
+        // 後から追加されたものが上に表示されるので、逆順でチェック
+        for (let i = pageAnnotations.length - 1; i >= 0; i--) {
+            const ann = pageAnnotations[i];
+
+            if (ann.type === 'text') {
+                // テキスト注釈のヒット判定
+                const element = this.annotationLayer.querySelector(`[data-id="${ann.id}"]`);
+                if (element) {
+                    const width = element.offsetWidth;
+                    const height = element.offsetHeight;
+                    if (x >= ann.x && x <= ann.x + width &&
+                        y >= ann.y && y <= ann.y + height) {
+                        return ann;
+                    }
+                }
+            } else {
+                // ハイライト・矩形のヒット判定
+                if (x >= ann.x && x <= ann.x + ann.width &&
+                    y >= ann.y && y <= ann.y + ann.height) {
+                    return ann;
+                }
+            }
+        }
+        return null;
     }
 
     showTextDialog(existingAnnotation = null) {

@@ -1031,9 +1031,9 @@ class PDFAnnotator {
             // フォントファミリーの選択肢
             const fontFamilies = [
                 { value: 'sans-serif', label: 'ゴシック体' },
-                { value: '"Yu Mincho", "Hiragino Mincho ProN", "MS Mincho", serif', label: '明朝体' },
+                { value: 'Yu Mincho, Hiragino Mincho ProN, MS Mincho, serif', label: '明朝体' },
                 { value: 'monospace', label: '等幅' },
-                { value: '"Comic Sans MS", cursive', label: '手書き風' }
+                { value: 'Comic Sans MS, cursive', label: '手書き風' }
             ];
             const fontFamilyOptions = fontFamilies.map(font =>
                 `<option value="${font.value}" ${defaultFontFamily === font.value ? 'selected' : ''}>${font.label}</option>`

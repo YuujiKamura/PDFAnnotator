@@ -68,9 +68,23 @@
                             <input type="color" id="color-picker" value="#ff0000">
                         </label>
                         <label class="tool-option">
-                            <span>不透明度:</span>
-                            <input type="range" id="opacity-slider" min="10" max="100" value="30">
-                            <span id="opacity-value">30%</span>
+                            <span>サイズ:</span>
+                            <select id="font-size-toolbar">
+                                <option value="10">10</option>
+                                <option value="12">12</option>
+                                <option value="14">14</option>
+                                <option value="16" selected>16</option>
+                                <option value="20">20</option>
+                                <option value="24">24</option>
+                                <option value="32">32</option>
+                            </select>
+                        </label>
+                        <label class="tool-option">
+                            <span>書体:</span>
+                            <select id="font-family-toolbar">
+                                <option value="mincho" selected>明朝</option>
+                                <option value="gothic">ゴシック</option>
+                            </select>
                         </label>
                     </div>
 
@@ -120,16 +134,6 @@
             <h3>テキスト注釈</h3>
             <textarea id="text-input" placeholder="テキストを入力..."></textarea>
             <div class="dialog-options">
-                <label>
-                    フォントサイズ:
-                    <select id="font-size-select">
-                        <option value="12">12px</option>
-                        <option value="14">14px</option>
-                        <option value="16" selected>16px</option>
-                        <option value="20">20px</option>
-                        <option value="24">24px</option>
-                    </select>
-                </label>
                 <label>
                     文字色:
                     <input type="color" id="text-color" value="#000000">

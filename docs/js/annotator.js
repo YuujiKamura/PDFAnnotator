@@ -13,6 +13,8 @@ class PDFAnnotatorApp {
         this.currentTool = 'select';
         this.activeColor = '#ff0000';  // デフォルト赤
         this.activeOpacity = 0.3;
+        this.activeFontSize = 16;
+        this.activeFontFamily = 'mincho';  // デフォルト明朝
 
         // ツール別のデフォルト色
         this.toolColors = {
@@ -27,7 +29,11 @@ class PDFAnnotatorApp {
         this.mouseDownPos = null;
         this.pdfBytes = null;  // 元のPDFデータを保持
         this.currentFilename = 'document.pdf';
-        this.japaneseFont = null;  // 日本語フォントキャッシュ
+        // 日本語フォントキャッシュ
+        this.fontCache = {
+            mincho: null,
+            gothic: null
+        };
 
         this.init();
     }
@@ -101,12 +107,14 @@ class PDFAnnotatorApp {
             this.activeColor = e.target.value;
         });
 
-        // 不透明度スライダー
-        const opacitySlider = document.getElementById('opacity-slider');
-        const opacityValue = document.getElementById('opacity-value');
-        opacitySlider.addEventListener('input', (e) => {
-            this.activeOpacity = e.target.value / 100;
-            opacityValue.textContent = e.target.value + '%';
+        // フォントサイズ
+        document.getElementById('font-size-toolbar').addEventListener('change', (e) => {
+            this.activeFontSize = parseInt(e.target.value);
+        });
+
+        // 書体
+        document.getElementById('font-family-toolbar').addEventListener('change', (e) => {
+            this.activeFontFamily = e.target.value;
         });
 
         // 削除ボタン
@@ -437,21 +445,25 @@ class PDFAnnotatorApp {
     showTextDialog(existingAnnotation = null) {
         const dialog = document.getElementById('text-dialog');
         const textInput = document.getElementById('text-input');
-        const fontSizeSelect = document.getElementById('font-size-select');
         const textColor = document.getElementById('text-color');
         const textBgColor = document.getElementById('text-bg-color');
         const textBgTransparent = document.getElementById('text-bg-transparent');
+        const fontSizeToolbar = document.getElementById('font-size-toolbar');
+        const fontFamilyToolbar = document.getElementById('font-family-toolbar');
 
         if (existingAnnotation) {
             textInput.value = existingAnnotation.text || '';
-            fontSizeSelect.value = existingAnnotation.fontSize || 16;
+            // ツールバーの値を既存の注釈に合わせる
+            this.activeFontSize = existingAnnotation.fontSize || 16;
+            this.activeFontFamily = existingAnnotation.fontFamily || 'mincho';
+            fontSizeToolbar.value = this.activeFontSize;
+            fontFamilyToolbar.value = this.activeFontFamily;
             textColor.value = existingAnnotation.color || '#000000';
             textBgColor.value = existingAnnotation.backgroundColor || '#ffffff';
             textBgTransparent.checked = existingAnnotation.backgroundColor === 'transparent';
             this.editingAnnotationId = existingAnnotation.id;
         } else {
             textInput.value = '';
-            fontSizeSelect.value = '16';
             textColor.value = '#000000';
             textBgColor.value = '#ffffff';
             textBgTransparent.checked = false;
@@ -465,7 +477,6 @@ class PDFAnnotatorApp {
 
     saveTextAnnotation() {
         const textInput = document.getElementById('text-input');
-        const fontSizeSelect = document.getElementById('font-size-select');
         const textColor = document.getElementById('text-color');
         const textBgColor = document.getElementById('text-bg-color');
         const textBgTransparent = document.getElementById('text-bg-transparent');
@@ -479,7 +490,8 @@ class PDFAnnotatorApp {
         const annotationData = {
             type: 'text',
             text: text,
-            fontSize: parseInt(fontSizeSelect.value),
+            fontSize: this.activeFontSize,
+            fontFamily: this.activeFontFamily,
             color: textColor.value,
             backgroundColor: textBgTransparent.checked ? 'transparent' : textBgColor.value
         };
@@ -650,19 +662,26 @@ class PDFAnnotatorApp {
         return { r, g, b };
     }
 
-    async loadJapaneseFont() {
-        if (this.japaneseFont) {
-            return this.japaneseFont;
+    async loadJapaneseFont(family) {
+        const key = family === 'mincho' ? 'mincho' : 'gothic';
+
+        if (this.fontCache[key]) {
+            return this.fontCache[key];
         }
 
+        const fontUrls = {
+            mincho: './fonts/NotoSerifJP-Subset.otf',
+            gothic: './fonts/NotoSansJP-Subset.otf'
+        };
+
         try {
-            const response = await fetch('./fonts/NotoSansJP-Subset.otf');
+            const response = await fetch(fontUrls[key]);
             if (!response.ok) {
                 throw new Error(`Font fetch failed: ${response.status}`);
             }
             const fontBytes = await response.arrayBuffer();
-            this.japaneseFont = new Uint8Array(fontBytes);
-            return this.japaneseFont;
+            this.fontCache[key] = new Uint8Array(fontBytes);
+            return this.fontCache[key];
         } catch (e) {
             console.error('Failed to load Japanese font:', e);
             throw new Error('日本語フォントの読み込みに失敗しました');
@@ -686,12 +705,17 @@ class PDFAnnotatorApp {
                 pdfDoc.registerFontkit(fontkit);
             }
 
-            // テキスト注釈があるか確認し、あれば日本語フォントを読み込む
-            const hasTextAnnotation = this.annotations.some(a => a.type === 'text');
-            let embeddedFont = null;
-            if (hasTextAnnotation) {
-                const fontBytes = await this.loadJapaneseFont();
-                embeddedFont = await pdfDoc.embedFont(fontBytes);
+            // 使用する書体を収集し、フォントを埋め込む
+            const usedFamilies = new Set(
+                this.annotations
+                    .filter(a => a.type === 'text')
+                    .map(a => a.fontFamily || 'mincho')
+            );
+
+            const embeddedFonts = {};
+            for (const family of usedFamilies) {
+                const fontBytes = await this.loadJapaneseFont(family);
+                embeddedFonts[family] = await pdfDoc.embedFont(fontBytes);
             }
 
             const pages = pdfDoc.getPages();
@@ -757,11 +781,14 @@ class PDFAnnotatorApp {
                         });
                     }
 
+                    const fontFamily = annotation.fontFamily || 'mincho';
+                    const font = embeddedFonts[fontFamily];
+
                     page.drawText(annotation.text, {
                         x: x,
                         y: y - fontSize,
                         size: fontSize,
-                        font: embeddedFont,
+                        font: font,
                         color: PDFLib.rgb(textColor.r, textColor.g, textColor.b),
                     });
                 }

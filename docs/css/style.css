@@ -54,6 +54,14 @@ body {
     background-color: #e94560;
 }
 
+.header-btn.save-btn {
+    background-color: #27ae60;
+}
+
+.header-btn.save-btn:hover {
+    background-color: #2ecc71;
+}
+
 .filename {
     color: #aaa;
     font-size: 0.9rem;

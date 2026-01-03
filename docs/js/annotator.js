@@ -18,6 +18,8 @@ class PDFAnnotatorApp {
         this.isDragging = false;
         this.currentAnnotationElement = null;
         this.mouseDownPos = null;
+        this.pdfBytes = null;  // 元のPDFデータを保持
+        this.currentFilename = 'document.pdf';
 
         this.init();
     }
@@ -104,6 +106,11 @@ class PDFAnnotatorApp {
             this.deleteSelectedAnnotation();
         });
 
+        // 保存ボタン
+        document.getElementById('save-btn').addEventListener('click', () => {
+            this.saveAnnotatedPDF();
+        });
+
         // ページナビゲーション
         document.getElementById('prev-page').addEventListener('click', () => this.prevPage());
         document.getElementById('next-page').addEventListener('click', () => this.nextPage());
@@ -145,9 +152,11 @@ class PDFAnnotatorApp {
     async loadPDF(file) {
         this.showLoading(true);
         this.filenameDisplay.textContent = file.name;
+        this.currentFilename = file.name;
 
         try {
             const arrayBuffer = await file.arrayBuffer();
+            this.pdfBytes = new Uint8Array(arrayBuffer);  // 元のPDFデータを保持
             this.pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
             this.totalPages = this.pdfDoc.numPages;
             this.currentPage = 1;
@@ -156,6 +165,9 @@ class PDFAnnotatorApp {
             // ビューア画面に切り替え
             this.uploadScreen.style.display = 'none';
             this.viewerScreen.style.display = 'flex';
+
+            // 保存ボタンを表示
+            document.getElementById('save-btn').style.display = 'inline-block';
 
             // ページを描画
             await this.renderPage(this.currentPage);
@@ -615,6 +627,127 @@ class PDFAnnotatorApp {
         const g = parseInt(hex.slice(3, 5), 16);
         const b = parseInt(hex.slice(5, 7), 16);
         return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    }
+
+    hexToRGB(hex) {
+        const r = parseInt(hex.slice(1, 3), 16) / 255;
+        const g = parseInt(hex.slice(3, 5), 16) / 255;
+        const b = parseInt(hex.slice(5, 7), 16) / 255;
+        return { r, g, b };
+    }
+
+    async saveAnnotatedPDF() {
+        if (!this.pdfBytes || this.annotations.length === 0) {
+            alert('注釈がありません。注釈を追加してから保存してください。');
+            return;
+        }
+
+        this.showLoading(true);
+
+        try {
+            // pdf-libでPDFを読み込む
+            const pdfDoc = await PDFLib.PDFDocument.load(this.pdfBytes);
+            const pages = pdfDoc.getPages();
+
+            // 各注釈を描画
+            for (const annotation of this.annotations) {
+                const pageIndex = annotation.page - 1;
+                if (pageIndex < 0 || pageIndex >= pages.length) continue;
+
+                const page = pages[pageIndex];
+                const { width: pageWidth, height: pageHeight } = page.getSize();
+
+                // 画面のスケールをPDFの座標に変換
+                const scaleX = pageWidth / (this.canvas.width / this.scale);
+                const scaleY = pageHeight / (this.canvas.height / this.scale);
+
+                // 座標を変換（画面座標→PDF座標、Y軸は反転）
+                const x = (annotation.x / this.scale) * scaleX;
+                const y = pageHeight - ((annotation.y / this.scale) * scaleY);
+
+                const color = this.hexToRGB(annotation.color || '#ffff00');
+
+                if (annotation.type === 'highlight') {
+                    const w = (annotation.width / this.scale) * scaleX;
+                    const h = (annotation.height / this.scale) * scaleY;
+
+                    page.drawRectangle({
+                        x: x,
+                        y: y - h,
+                        width: w,
+                        height: h,
+                        color: PDFLib.rgb(color.r, color.g, color.b),
+                        opacity: annotation.opacity || 0.3,
+                    });
+                } else if (annotation.type === 'rect') {
+                    const w = (annotation.width / this.scale) * scaleX;
+                    const h = (annotation.height / this.scale) * scaleY;
+
+                    page.drawRectangle({
+                        x: x,
+                        y: y - h,
+                        width: w,
+                        height: h,
+                        borderColor: PDFLib.rgb(color.r, color.g, color.b),
+                        borderWidth: 2,
+                    });
+                } else if (annotation.type === 'text') {
+                    const fontSize = (annotation.fontSize || 16) * scaleX / this.scale;
+                    const textColor = this.hexToRGB(annotation.color || '#000000');
+
+                    // 背景を描画
+                    if (annotation.backgroundColor && annotation.backgroundColor !== 'transparent') {
+                        const bgColor = this.hexToRGB(annotation.backgroundColor);
+                        const textWidth = annotation.text.length * fontSize * 0.6;
+                        const textHeight = fontSize * 1.5;
+
+                        page.drawRectangle({
+                            x: x - 4,
+                            y: y - textHeight,
+                            width: textWidth + 8,
+                            height: textHeight + 4,
+                            color: PDFLib.rgb(bgColor.r, bgColor.g, bgColor.b),
+                        });
+                    }
+
+                    page.drawText(annotation.text, {
+                        x: x,
+                        y: y - fontSize,
+                        size: fontSize,
+                        color: PDFLib.rgb(textColor.r, textColor.g, textColor.b),
+                    });
+                }
+            }
+
+            // PDFを保存
+            const pdfBytesModified = await pdfDoc.save();
+
+            // ダウンロード
+            const blob = new Blob([pdfBytesModified], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+
+            // ファイル名を生成
+            const baseName = this.currentFilename.replace('.pdf', '');
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
+            const filename = `${baseName}_annotated_${timestamp}.pdf`;
+
+            // ダウンロードリンクを作成
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // URLを解放
+            URL.revokeObjectURL(url);
+
+            this.showLoading(false);
+        } catch (error) {
+            console.error('PDF保存エラー:', error);
+            alert('PDFの保存に失敗しました: ' + error.message);
+            this.showLoading(false);
+        }
     }
 }
 

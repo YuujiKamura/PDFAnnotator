@@ -6,6 +6,7 @@
     <title>PDF Annotator - PDF注釈ツール</title>
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -15,6 +16,7 @@
             <div class="header-controls">
                 <button id="open-file-btn" class="header-btn">PDFを開く</button>
                 <span id="filename-display" class="filename"></span>
+                <button id="save-btn" class="header-btn save-btn" style="display: none;">保存</button>
             </div>
         </header>
 

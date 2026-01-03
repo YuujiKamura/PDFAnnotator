@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Annotator - PDF注釈ツール</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- ヘッダー -->
+        <header class="header">
+            <h1>PDF Annotator</h1>
+            <div class="header-controls">
+                <button id="open-file-btn" class="header-btn">PDFを開く</button>
+                <span id="filename-display" class="filename"></span>
+            </div>
+        </header>
+
+        <!-- メインコンテンツ -->
+        <main class="main-content">
+            <!-- 初期画面（PDFアップロード） -->
+            <div id="upload-screen" class="upload-screen">
+                <div class="upload-container">
+                    <div class="upload-icon">📄</div>
+                    <h2>PDFファイルを選択</h2>
+                    <p>クリックまたはドラッグ&ドロップでPDFをアップロード</p>
+                    <input type="file" id="pdf-input" accept=".pdf" hidden>
+                    <button id="select-file-btn" class="upload-btn">ファイルを選択</button>
+                    <div class="upload-hint">
+                        <p>対応形式: PDF (最大 50MB)</p>
+                        <p>全ての処理はブラウザ内で完結します</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PDFビューア画面 -->
+            <div id="viewer-screen" class="viewer-screen" style="display: none;">
+                <!-- ツールバー -->
+                <div class="toolbar">
+                    <div class="tool-group">
+                        <button class="tool-btn select-btn active" data-tool="select" title="選択ツール">
+                            <span class="tool-icon">↖</span>
+                            <span class="tool-label">選択</span>
+                        </button>
+                        <button class="tool-btn highlight-btn" data-tool="highlight" title="ハイライト">
+                            <span class="tool-icon">🖍</span>
+                            <span class="tool-label">ハイライト</span>
+                        </button>
+                        <button class="tool-btn rect-btn" data-tool="rect" title="矩形">
+                            <span class="tool-icon">□</span>
+                            <span class="tool-label">矩形</span>
+                        </button>
+                        <button class="tool-btn text-btn" data-tool="text" title="テキスト">
+                            <span class="tool-icon">T</span>
+                            <span class="tool-label">テキスト</span>
+                        </button>
+                    </div>
+
+                    <div class="tool-group">
+                        <label class="tool-option">
+                            <span>色:</span>
+                            <input type="color" id="color-picker" value="#ffff00">
+                        </label>
+                        <label class="tool-option">
+                            <span>不透明度:</span>
+                            <input type="range" id="opacity-slider" min="10" max="100" value="30">
+                            <span id="opacity-value">30%</span>
+                        </label>
+                    </div>
+
+                    <div class="tool-group">
+                        <button id="delete-btn" class="tool-btn delete-btn" title="削除">
+                            <span class="tool-icon">🗑</span>
+                            <span class="tool-label">削除</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- PDFキャンバス -->
+                <div id="pdf-container" class="pdf-container">
+                    <div id="loading-indicator" class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>読み込み中...</p>
+                    </div>
+                    <canvas id="pdf-canvas"></canvas>
+                    <div id="annotation-layer" class="annotation-layer"></div>
+                </div>
+
+                <!-- ページナビゲーション -->
+                <div class="page-controls">
+                    <button id="prev-page" class="page-btn" disabled>◀ 前へ</button>
+                    <span class="page-info">
+                        <span id="page-num">1</span> / <span id="page-count">1</span>
+                    </span>
+                    <button id="next-page" class="page-btn">次へ ▶</button>
+                    <div class="zoom-controls">
+                        <button id="zoom-out" class="zoom-btn">−</button>
+                        <span id="zoom-level">100%</span>
+                        <button id="zoom-in" class="zoom-btn">+</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- フッター -->
+        <footer class="footer">
+            <p>PDF Annotator - ブラウザで動作するPDF注釈ツール</p>
+        </footer>
+    </div>
+
+    <!-- テキスト入力ダイアログ -->
+    <div id="text-dialog" class="dialog-overlay" style="display: none;">
+        <div class="dialog">
+            <h3>テキスト注釈</h3>
+            <textarea id="text-input" placeholder="テキストを入力..."></textarea>
+            <div class="dialog-options">
+                <label>
+                    フォントサイズ:
+                    <select id="font-size-select">
+                        <option value="12">12px</option>
+                        <option value="14">14px</option>
+                        <option value="16" selected>16px</option>
+                        <option value="20">20px</option>
+                        <option value="24">24px</option>
+                    </select>
+                </label>
+                <label>
+                    文字色:
+                    <input type="color" id="text-color" value="#000000">
+                </label>
+                <label>
+                    背景色:
+                    <input type="color" id="text-bg-color" value="#ffff99">
+                    <label><input type="checkbox" id="text-bg-transparent"> 透明</label>
+                </label>
+            </div>
+            <div class="dialog-buttons">
+                <button id="text-cancel" class="dialog-btn cancel">キャンセル</button>
+                <button id="text-save" class="dialog-btn save">追加</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/annotator.js"></script>
+</body>
+</html>

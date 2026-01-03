@@ -1,0 +1,519 @@
+/* PDF Annotator - スタイルシート */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Yu Gothic", sans-serif;
+    background-color: #1a1a2e;
+    color: #eee;
+    min-height: 100vh;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ヘッダー */
+.header {
+    background-color: #16213e;
+    padding: 0.8rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #0f3460;
+}
+
+.header h1 {
+    font-size: 1.5rem;
+    color: #e94560;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-btn {
+    background-color: #0f3460;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.header-btn:hover {
+    background-color: #e94560;
+}
+
+.filename {
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+/* メインコンテンツ */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* アップロード画面 */
+.upload-screen {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+}
+
+.upload-container {
+    background-color: #16213e;
+    border: 2px dashed #0f3460;
+    border-radius: 12px;
+    padding: 3rem;
+    text-align: center;
+    max-width: 500px;
+    width: 100%;
+    transition: border-color 0.3s, background-color 0.3s;
+}
+
+.upload-container:hover,
+.upload-container.drag-over {
+    border-color: #e94560;
+    background-color: #1a2744;
+}
+
+.upload-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.upload-container h2 {
+    margin-bottom: 0.5rem;
+    color: #fff;
+}
+
+.upload-container p {
+    color: #aaa;
+    margin-bottom: 1.5rem;
+}
+
+.upload-btn {
+    background-color: #e94560;
+    color: #fff;
+    border: none;
+    padding: 0.8rem 2rem;
+    font-size: 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.upload-btn:hover {
+    background-color: #ff6b6b;
+    transform: translateY(-2px);
+}
+
+.upload-hint {
+    margin-top: 1.5rem;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.upload-hint p {
+    margin-bottom: 0.3rem;
+}
+
+/* ビューア画面 */
+.viewer-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ツールバー */
+.toolbar {
+    background-color: #16213e;
+    padding: 0.5rem 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    border-bottom: 1px solid #0f3460;
+}
+
+.tool-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.tool-btn {
+    background-color: #0f3460;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    transition: background-color 0.2s;
+    min-width: 60px;
+}
+
+.tool-btn:hover {
+    background-color: #1a4a7a;
+}
+
+.tool-btn.active {
+    background-color: #e94560;
+}
+
+.tool-icon {
+    font-size: 1.2rem;
+}
+
+.tool-label {
+    font-size: 0.7rem;
+}
+
+.tool-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #aaa;
+    font-size: 0.85rem;
+}
+
+.tool-option input[type="color"] {
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.tool-option input[type="range"] {
+    width: 80px;
+}
+
+.delete-btn:hover {
+    background-color: #c0392b;
+}
+
+/* PDFコンテナ */
+.pdf-container {
+    flex: 1;
+    position: relative;
+    overflow: auto;
+    background-color: #2a2a4a;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+
+#pdf-canvas {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    background-color: #fff;
+}
+
+.annotation-layer {
+    position: absolute;
+    pointer-events: auto;
+}
+
+/* 注釈スタイル */
+.annotation {
+    position: absolute;
+    cursor: pointer;
+}
+
+.annotation.highlight {
+    mix-blend-mode: multiply;
+}
+
+.annotation.rect {
+    border: 2px solid;
+}
+
+.annotation.text {
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 14px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-width: 300px;
+}
+
+.annotation.selected {
+    outline: 2px solid #0066ff;
+    outline-offset: 2px;
+    box-shadow: 0 0 8px rgba(0, 102, 255, 0.5);
+}
+
+.resize-handle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    right: -5px;
+    bottom: -5px;
+    background: #0066ff;
+    border: 2px solid white;
+    border-radius: 50%;
+    cursor: se-resize;
+}
+
+/* ローディング */
+.loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(26, 26, 46, 0.9);
+    z-index: 1000;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #0f3460;
+    border-top: 4px solid #e94560;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading p {
+    margin-top: 1rem;
+    color: #aaa;
+}
+
+/* ページコントロール */
+.page-controls {
+    background-color: #16213e;
+    padding: 0.5rem 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    border-top: 1px solid #0f3460;
+}
+
+.page-btn {
+    background-color: #0f3460;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.page-btn:hover:not(:disabled) {
+    background-color: #1a4a7a;
+}
+
+.page-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.page-info {
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+.zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: 1rem;
+}
+
+.zoom-btn {
+    background-color: #0f3460;
+    color: #fff;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.zoom-btn:hover {
+    background-color: #1a4a7a;
+}
+
+#zoom-level {
+    color: #aaa;
+    font-size: 0.85rem;
+    min-width: 50px;
+    text-align: center;
+}
+
+/* ダイアログ */
+.dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.dialog {
+    background-color: #16213e;
+    padding: 1.5rem;
+    border-radius: 8px;
+    min-width: 350px;
+    max-width: 90%;
+}
+
+.dialog h3 {
+    margin-bottom: 1rem;
+    color: #fff;
+}
+
+.dialog textarea {
+    width: 100%;
+    height: 100px;
+    padding: 0.8rem;
+    border: 1px solid #0f3460;
+    border-radius: 4px;
+    background-color: #1a1a2e;
+    color: #fff;
+    font-size: 1rem;
+    resize: vertical;
+    margin-bottom: 1rem;
+}
+
+.dialog textarea:focus {
+    outline: none;
+    border-color: #e94560;
+}
+
+.dialog-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.dialog-options label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+.dialog-options select {
+    padding: 0.3rem;
+    border-radius: 4px;
+    background-color: #0f3460;
+    color: #fff;
+    border: none;
+}
+
+.dialog-options input[type="color"] {
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.dialog-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.dialog-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.dialog-btn.cancel {
+    background-color: #666;
+    color: #fff;
+}
+
+.dialog-btn.save {
+    background-color: #e94560;
+    color: #fff;
+}
+
+.dialog-btn:hover {
+    opacity: 0.9;
+}
+
+/* フッター */
+.footer {
+    background-color: #16213e;
+    padding: 0.5rem;
+    text-align: center;
+    border-top: 1px solid #0f3460;
+}
+
+.footer p {
+    color: #666;
+    font-size: 0.8rem;
+}
+
+/* レスポンシブ */
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .tool-group {
+        justify-content: center;
+    }
+
+    .page-controls {
+        flex-wrap: wrap;
+    }
+
+    .zoom-controls {
+        margin-left: 0;
+        margin-top: 0.5rem;
+    }
+}

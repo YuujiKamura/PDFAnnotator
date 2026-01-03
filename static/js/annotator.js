@@ -354,6 +354,7 @@ class PDFAnnotator {
                 annotElement.textContent = annotation.text;
                 annotElement.style.color = annotation.color || this.activeTextColor;
                 annotElement.style.fontSize = `${annotation.fontSize || 16}px`;
+                annotElement.style.fontFamily = annotation.fontFamily || 'sans-serif';
                 annotElement.style.backgroundColor = annotation.backgroundColor;
                 annotElement.style.padding = `${annotation.padding || 4}px`;
                 // テキスト注釈用のスタイルを追加
@@ -984,6 +985,7 @@ class PDFAnnotator {
             backgroundColor: result.backgroundColor || '#ffffff',
             text: result.text,
             fontSize: result.fontSize || 16,
+            fontFamily: result.fontFamily || 'sans-serif',
             padding: result.padding || 4,
             page: this.currentPage
         };
@@ -1014,23 +1016,46 @@ class PDFAnnotator {
             // 既存のテキスト注釈の値またはデフォルト値を使用
             const defaultText = options.text || '';
             const defaultFontSize = options.fontSize || 16;
+            const defaultFontFamily = options.fontFamily || 'sans-serif';
             const defaultColor = options.color || this.activeColor;
             const defaultBgColor = options.backgroundColor || '#ffffff';
             const defaultPadding = options.padding || 4;
             const isTransparent = options.backgroundColor === 'transparent';
 
+            // フォントサイズの選択肢
+            const fontSizes = [12, 16, 20, 24, 32, 40, 48, 56, 64, 72, 96, 128];
+            const fontSizeOptions = fontSizes.map(size =>
+                `<option value="${size}" ${defaultFontSize === size ? 'selected' : ''}>${size}px</option>`
+            ).join('');
+
+            // フォントファミリーの選択肢
+            const fontFamilies = [
+                { value: 'sans-serif', label: 'ゴシック体' },
+                { value: '"Yu Mincho", "Hiragino Mincho ProN", "MS Mincho", serif', label: '明朝体' },
+                { value: 'monospace', label: '等幅' },
+                { value: '"Comic Sans MS", cursive', label: '手書き風' }
+            ];
+            const fontFamilyOptions = fontFamilies.map(font =>
+                `<option value="${font.value}" ${defaultFontFamily === font.value ? 'selected' : ''}>${font.label}</option>`
+            ).join('');
+
             dialog.innerHTML = `
                 <div style="margin-bottom: 15px;">
                     <textarea id="text-input" style="width: 100%; height: 100px; padding: 8px;">${defaultText}</textarea>
                 </div>
-                <div style="margin-bottom: 15px;">
-                    <label>テキストサイズ:</label>
-                    <select id="text-size-select">
-                        <option value="12" ${defaultFontSize === 12 ? 'selected' : ''}>小 (12px)</option>
-                        <option value="16" ${defaultFontSize === 16 ? 'selected' : ''}>中 (16px)</option>
-                        <option value="20" ${defaultFontSize === 20 ? 'selected' : ''}>大 (20px)</option>
-                        <option value="24" ${defaultFontSize === 24 ? 'selected' : ''}>特大 (24px)</option>
-                    </select>
+                <div style="margin-bottom: 15px; display: flex; gap: 15px;">
+                    <div>
+                        <label>サイズ:</label>
+                        <select id="text-size-select">
+                            ${fontSizeOptions}
+                        </select>
+                    </div>
+                    <div>
+                        <label>フォント:</label>
+                        <select id="text-font-select">
+                            ${fontFamilyOptions}
+                        </select>
+                    </div>
                 </div>
                 <div style="margin-bottom: 15px;">
                     <label>文字色:</label>
@@ -1060,6 +1085,7 @@ class PDFAnnotator {
 
             const textInput = dialog.querySelector('#text-input');
             const sizeSelect = dialog.querySelector('#text-size-select');
+            const fontSelect = dialog.querySelector('#text-font-select');
             const textColorInput = dialog.querySelector('#text-color');
             const bgColorInput = dialog.querySelector('#text-bg-color');
             const bgTransparentCheckbox = dialog.querySelector('#text-bg-transparent');
@@ -1078,6 +1104,7 @@ class PDFAnnotator {
                     resolve({
                         text: text,
                         fontSize: parseInt(sizeSelect.value),
+                        fontFamily: fontSelect.value,
                         color: textColorInput.value,
                         backgroundColor: bgTransparentCheckbox.checked ? 'transparent' : bgColorInput.value,
                         padding: parseInt(paddingSelect.value)
@@ -1105,6 +1132,7 @@ class PDFAnnotator {
         this.showTextDialog({
             text: currentAnnot.text,
             fontSize: currentAnnot.fontSize || 16,
+            fontFamily: currentAnnot.fontFamily || 'sans-serif',
             color: currentAnnot.color || this.activeColor,
             backgroundColor: currentAnnot.backgroundColor || '#ffffff',
             padding: currentAnnot.padding || 4

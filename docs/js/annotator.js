@@ -156,8 +156,8 @@ class PDFAnnotatorApp {
 
         try {
             const arrayBuffer = await file.arrayBuffer();
-            this.pdfBytes = new Uint8Array(arrayBuffer);  // 元のPDFデータを保持
-            this.pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            this.pdfBytes = new Uint8Array(arrayBuffer.slice(0));  // コピーを保持
+            this.pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer.slice(0) }).promise;
             this.totalPages = this.pdfDoc.numPages;
             this.currentPage = 1;
             this.annotations = [];

@@ -1,86 +1,68 @@
-# PDF注釈ツール
+# PDF Annotator
 
-PDFファイルをアップロードして注釈を付けることができるウェブアプリケーションです。
+ブラウザで動作するPDF注釈ツールです。サーバー不要で、すべての処理がクライアントサイドで完結します。
+
+## Demo
+
+**https://yuujikamura.github.io/PDFAnnotator/**
 
 ## 機能
 
-- PDFファイルのアップロードと表示
-- ハイライト、矩形、テキスト注釈の追加
-- ページ間の移動
-- 注釈の保存とダウンロード
-- セキュリティ対策とエラーハンドリング
+| 機能 | 説明 |
+|------|------|
+| PDFアップロード | ドラッグ&ドロップまたはファイル選択 |
+| ハイライト | 範囲を選択して半透明の色付け |
+| 矩形注釈 | 枠線で囲む注釈 |
+| テキスト注釈 | テキスト追加（サイズ、色、背景色設定可） |
+| 選択・編集 | 注釈の移動・リサイズ |
+| ページ移動 | 前後ページへのナビゲーション |
+| ズーム | 拡大・縮小表示 |
 
-## インストール方法
+## 使い方
 
-1. リポジトリをクローン：
-   ```
-   git clone https://github.com/yourusername/pdf-annotator.git
-   cd pdf-annotator
-   ```
+1. [Demo](https://yuujikamura.github.io/PDFAnnotator/) にアクセス
+2. PDFファイルをドラッグ&ドロップまたは選択
+3. ツールバーから注釈ツールを選択
+4. PDF上で注釈を追加
 
-2. 依存パッケージのインストール：
-   ```
-   pip install -r requirements.txt
-   ```
+### ショートカット
 
-3. アプリケーションの実行：
-   ```
-   python app.py
-   ```
+| キー | 動作 |
+|------|------|
+| Delete | 選択中の注釈を削除 |
+| Escape | 選択解除・選択ツールに戻る |
 
-4. ブラウザで以下のURLにアクセス：
-   ```
-   http://localhost:5000
-   ```
+## ローカルで実行
 
-## 自動テスト
+### 静的版（GitHub Pages版）
 
-このプロジェクトには自動テストが含まれています。以下のテストが実装されています：
+```bash
+# docs/ フォルダをWebサーバーで配信
+cd docs
+python -m http.server 8000
+# http://localhost:8000 にアクセス
+```
 
-1. **APIテスト**：アプリケーションのAPIエンドポイントをテスト
-2. **E2Eテスト**：Seleniumを使用したエンドツーエンドテスト
+### Flask版（フル機能）
 
-### テストの実行方法
+```bash
+# 依存パッケージのインストール
+pip install -r requirements.txt
 
-1. テスト用パッケージのインストール：
-   ```
-   pip install pytest selenium webdriver-manager
-   ```
+# アプリケーションの実行
+python app.py
 
-2. テスト用のサンプルPDFを生成：
-   ```
-   python tests/create_sample_pdf.py
-   ```
+# http://localhost:5000 にアクセス
+```
 
-3. APIテストの実行：
-   ```
-   pytest tests/test_api.py -v
-   ```
+Flask版では注釈を埋め込んだPDFのダウンロードが可能です。
 
-4. E2Eテストの実行（アプリケーションが起動している必要があります）：
-   ```
-   pytest tests/test_e2e.py -v
-   ```
+## 技術スタック
 
-5. すべてのテストを実行：
-   ```
-   pytest
-   ```
-
-6. カバレッジレポートの生成：
-   ```
-   pytest --cov=app tests/
-   ```
-
-## CI/CD統合
-
-このプロジェクトはGitHub Actionsを使用して継続的インテグレーションを行っています。
-メインブランチにプッシュまたはプルリクエストが作成されると、自動的にテストが実行されます。
+- **フロントエンド**: HTML5, CSS3, JavaScript (ES6+)
+- **PDF描画**: [PDF.js](https://mozilla.github.io/pdf.js/)
+- **バックエンド（Flask版）**: Python, Flask, PyMuPDF
 
 ## ライセンス
 
 MIT
-
-## 作者
-
-Your Name 

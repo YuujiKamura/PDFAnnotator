@@ -212,8 +212,13 @@ body {
     cursor: pointer;
 }
 
-.tool-option input[type="range"] {
-    width: 80px;
+.tool-option select {
+    padding: 0.3rem 0.5rem;
+    border-radius: 4px;
+    background-color: #0f3460;
+    color: #fff;
+    border: none;
+    cursor: pointer;
 }
 
 .delete-btn:hover {

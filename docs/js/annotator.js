@@ -11,8 +11,15 @@ class PDFAnnotatorApp {
         this.scale = 1.5;
         this.annotations = [];
         this.currentTool = 'select';
-        this.activeColor = '#ffff00';
+        this.activeColor = '#ff0000';  // デフォルト赤
         this.activeOpacity = 0.3;
+
+        // ツール別のデフォルト色
+        this.toolColors = {
+            highlight: '#ff0000',  // 赤
+            rect: '#808080',       // グレー
+            text: '#000000'        // 黒
+        };
         this.selectedAnnotation = null;
         this.isDrawing = false;
         this.isDragging = false;
@@ -292,6 +299,12 @@ class PDFAnnotatorApp {
             btn.classList.toggle('active', btn.dataset.tool === toolName);
         });
 
+        // ツール別のデフォルト色を適用
+        if (this.toolColors[toolName]) {
+            this.activeColor = this.toolColors[toolName];
+            document.getElementById('color-picker').value = this.activeColor;
+        }
+
         // カーソルを更新
         if (toolName === 'select') {
             this.annotationLayer.style.cursor = 'default';
@@ -433,14 +446,14 @@ class PDFAnnotatorApp {
             textInput.value = existingAnnotation.text || '';
             fontSizeSelect.value = existingAnnotation.fontSize || 16;
             textColor.value = existingAnnotation.color || '#000000';
-            textBgColor.value = existingAnnotation.backgroundColor || '#ffff99';
+            textBgColor.value = existingAnnotation.backgroundColor || '#ffffff';
             textBgTransparent.checked = existingAnnotation.backgroundColor === 'transparent';
             this.editingAnnotationId = existingAnnotation.id;
         } else {
             textInput.value = '';
             fontSizeSelect.value = '16';
             textColor.value = '#000000';
-            textBgColor.value = '#ffff99';
+            textBgColor.value = '#ffffff';
             textBgTransparent.checked = false;
             this.editingAnnotationId = null;
         }

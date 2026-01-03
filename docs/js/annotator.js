@@ -95,15 +95,34 @@ class PDFAnnotatorApp {
             }
         });
 
-        // ツールバーボタン
+        // ツールバーボタン（もう一度クリックで選択モードに戻る）
         document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
             btn.addEventListener('click', () => {
-                this.selectTool(btn.dataset.tool);
+                const tool = btn.dataset.tool;
+                if (tool !== 'select' && this.currentTool === tool) {
+                    // 同じツールをクリックしたら選択モードに戻る
+                    this.selectTool('select');
+                } else {
+                    this.selectTool(tool);
+                }
             });
         });
 
-        // カラーピッカー
+        // カラーピッカー（ハイライト・矩形用）
         document.getElementById('color-picker').addEventListener('input', (e) => {
+            this.activeColor = e.target.value;
+        });
+
+        // 不透明度スライダー
+        const opacitySlider = document.getElementById('opacity-slider');
+        const opacityValue = document.getElementById('opacity-value');
+        opacitySlider.addEventListener('input', (e) => {
+            this.activeOpacity = parseInt(e.target.value) / 100;
+            opacityValue.textContent = e.target.value + '%';
+        });
+
+        // テキストカラーピッカー
+        document.getElementById('text-color-picker').addEventListener('input', (e) => {
             this.activeColor = e.target.value;
         });
 
@@ -311,6 +330,21 @@ class PDFAnnotatorApp {
         if (this.toolColors[toolName]) {
             this.activeColor = this.toolColors[toolName];
             document.getElementById('color-picker').value = this.activeColor;
+        }
+
+        // オプション表示を更新
+        const shapeOptions = document.getElementById('shape-options');
+        const textOptions = document.getElementById('text-options');
+
+        if (toolName === 'highlight' || toolName === 'rect') {
+            shapeOptions.style.display = 'flex';
+            textOptions.style.display = 'none';
+        } else if (toolName === 'text') {
+            shapeOptions.style.display = 'none';
+            textOptions.style.display = 'flex';
+        } else {
+            shapeOptions.style.display = 'none';
+            textOptions.style.display = 'none';
         }
 
         // カーソルを更新
